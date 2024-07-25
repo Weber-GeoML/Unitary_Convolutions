@@ -56,7 +56,7 @@ Consider a unitary layer imported as below.
 
 ```python
  from layers.complex_valued_layers import  UnitaryGCNConvLayer
- uni_layer = UnitaryGCNConvLayer(	input_dim,
+ uni_layer = UnitaryGCNConvLayer(   input_dim,
 				    output_dim, 
 				    dropout  =  0.0, 			# percentage of dropout
 				    residual  =  False, 		# adds residual connection after activation
