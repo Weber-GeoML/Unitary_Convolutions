@@ -13,14 +13,14 @@ The code here implements unitary/orthogonal graph message passing layers. Within
 Here, all the operations are over real numbers .  Consider an orthogonal layer imported as below.
 ```python
 from layers.real_valued_layers import  OrthogonalGCNConvLayer
-ortho_layer = OrthogonalGCNConvLayer(input_dim,
-								    output_dim, 					# must be even dimensional
-								    dropout  =  0.0, 				# percentage of dropout
-								    residual  =  False, 			# adds residual connection after activation
-								    global_bias  =  True, 			# adds a bias term after the convolution operation
-								    T  =  10, 						# Truncation in the Taylor approximation
-								    use_hermitian  =  False, 		# Set to True if Lie OrthoConv is desired (otherwise separable convolution is used)
-								    activation  =  torch.nn.ReLU) 	# Activation applied separately to complex and real parts
+ortho_layer = OrthogonalGCNConvLayer(	input_dim,
+					output_dim, 				# must be even dimensional
+					dropout  =  0.0, 			# percentage of dropout
+					residual  =  False, 			# adds residual connection after activation
+					global_bias  =  True, 			# adds a bias term after the convolution operation
+					T  =  10, 				# Truncation in the Taylor approximation
+					use_hermitian  =  False, 		# Set to True if Lie OrthoConv is desired (otherwise separable convolution is used)
+					activation  =  torch.nn.ReLU) 		# Activation applied separately to complex and real parts
 ```
 
 To use this class, simply call it on a data object in Pytorch Geometric (features `x` and edges `edge_index` must be specified here by the particular dataset or input).
@@ -56,14 +56,14 @@ Consider a unitary layer imported as below.
 
 ```python
  from layers.complex_valued_layers import  UnitaryGCNConvLayer
- uni_layer = UnitaryGCNConvLayer(input_dim,
-							    output_dim, 
-							    dropout  =  0.0, 				# percentage of dropout
-							    residual  =  False, 			# adds residual connection after activation
-							    global_bias  =  True, 			# adds a bias term after the convolution operation
-							    T  =  10, 						# Truncation in the Taylor approximation
-							    use_hermitian  =  False, 		# Set to True if Lie UniConv is desired (otherwise separable convolution is used)
-							    activation  =  torch.nn.ReLU) 	# Activation applied separately to complex and real parts
+ uni_layer = UnitaryGCNConvLayer(	input_dim,
+				    output_dim, 
+				    dropout  =  0.0, 			# percentage of dropout
+				    residual  =  False, 		# adds residual connection after activation
+				    global_bias  =  True, 		# adds a bias term after the convolution operation
+				    T  =  10, 				# Truncation in the Taylor approximation
+				    use_hermitian  =  False, 		# Set to True if Lie UniConv is desired (otherwise separable convolution is used)
+				    activation  =  torch.nn.ReLU) 	# Activation applied separately to complex and real parts
 ```
 To use this class, simply call it on a data object in Pytorch Geometric.
 ```python
