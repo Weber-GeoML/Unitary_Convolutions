@@ -76,7 +76,7 @@ out = uni_layer(data)
 
 **UniConv** (`use_hermitian=False`): $A \in  \mathbb{R}^{n \times n}$ is an adjacency matrix, $X \in  \mathbb{C}^{n \times d}$ is a feature matrix, $W \in  \mathbb{C}^{d \times d'}$ and bias $b \in \mathbb{C}^{d'}$ is a feature transformation matrix and bias. The weight matrix is not constrained to be unitary (only the message passing part) in this separable form.
 
-$ f_{Uconv}(X) = \sigma(\exp(iA) X W + b) $
+$f_{Uconv}(X) = \sigma(\exp(iA) X W + b)$
 Here, $\sigma$ is the chosen activation applied separately to real and complex parts. 
 
 **Lie UniConv** (`use_hermitian=True`): In this form, `input_dim` must always equal `output_dim` and we have the following form for the 
