@@ -35,7 +35,7 @@ Now to explain the arguments in the class, we first note that `use_hermitian` co
 
 **OrthoConv** (`use_hermitian=False`): $A \in  \mathbb{R}^{n \times n}$ is an adjacency matrix, $X \in  \mathbb{R}^{n \times d}$ is a feature matrix, $W \in  \mathbb{R}^{d \times d'}$ and bias $b \in \mathbb{R}^{d'}$ is a feature transformation matrix and bias. The weight matrix is not constrained to be unitary (only the message passing part) in this separable form.
 
-$ f_{Uconv}(X) = \sigma(\exp(iA) X W + b) $
+$f_{Uconv}(X) = \sigma(\exp(iA) X W + b)$
 The above has an imaginary number, but we perform it here only using real numbers by pairing two numbers together and treating one as imaginary and one as real (hence the need for even output dimension). Here, $\sigma$ is the chosen activation. 
 
 **Lie OrthoConv** (`use_hermitian=True`): In this form, `input_dim` must always equal `output_dim` and we have the following form for the 
