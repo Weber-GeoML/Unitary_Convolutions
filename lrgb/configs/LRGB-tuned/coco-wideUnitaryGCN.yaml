@@ -47,7 +47,7 @@ gnn:
   layers_pre_mp: 0
   layers_mp: 10
   layers_post_mp: 1
-  dim_inner: 140
+  dim_inner: 280
   layer_type: unitarygcnconv
   normalize_adj: True
   act: c_gelu
