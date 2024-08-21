@@ -94,7 +94,8 @@ def new_scheduler_config(cfg):
         max_epoch=cfg.optim.max_epoch, reduce_factor=cfg.optim.reduce_factor,
         schedule_patience=cfg.optim.schedule_patience, min_lr=cfg.optim.min_lr,
         num_warmup_epochs=cfg.optim.num_warmup_epochs,
-        train_mode=cfg.train.mode, eval_period=cfg.train.eval_period)
+        train_mode=cfg.train.mode, eval_period=cfg.train.eval_period,
+        num_cycles=cfg.optim.num_cycles)
 
 
 def custom_set_out_dir(cfg, cfg_fname, name_tag):
