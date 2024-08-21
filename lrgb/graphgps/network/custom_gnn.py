@@ -35,8 +35,15 @@ class CustomGNN(torch.nn.Module):
         assert cfg.gnn.dim_inner == dim_in, \
             "The inner and hidden dims must match."
 
-        conv_model = self.build_conv_model(cfg.gnn.layer_type)
         layers = []
+        conv_setup_model = self.build_conv_model(cfg.gnn.conv_setup_layer_type)
+        for _ in range(cfg.gnn.layers_conv_setup):
+            layers.append(conv_setup_model(dim_in,
+                                     dim_in,
+                                     dropout=cfg.gnn.dropout,
+                                     residual=cfg.gnn.residual))
+            
+        conv_model = self.build_conv_model(cfg.gnn.layer_type)
         for _ in range(cfg.gnn.layers_mp):
             layers.append(conv_model(dim_in,
                                      dim_in,

@@ -143,7 +143,10 @@ def custom_train(loggers, loaders, model, optimizer, scheduler):
 
         val_perf = perf[1]
         if cfg.optim.scheduler == 'reduce_on_plateau':
-            scheduler.step(val_perf[-1]['loss'])
+            try:
+                scheduler.step(-val_perf[-1]['f1'])
+            except:
+                scheduler.step(val_perf[-1]['loss'])
         else:
             scheduler.step()
         full_epoch_times.append(time.perf_counter() - start_time)

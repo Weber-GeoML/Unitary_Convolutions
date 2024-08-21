@@ -33,6 +33,7 @@ class ExtendedSchedulerConfig(SchedulerConfig):
     num_warmup_epochs: int = 10
     train_mode: str = 'custom'
     eval_period: int = 1
+    num_cycles: float = 0.5
 
 
 @register.register_scheduler('plateau')
@@ -102,11 +103,13 @@ def linear_with_warmup_scheduler(optimizer: Optimizer,
 
 @register.register_scheduler('cosine_with_warmup')
 def cosine_with_warmup_scheduler(optimizer: Optimizer,
-                                 num_warmup_epochs: int, max_epoch: int):
+                                 num_warmup_epochs: int, max_epoch: int,
+                                 num_cycles: float):
     scheduler = get_cosine_schedule_with_warmup(
         optimizer=optimizer,
         num_warmup_steps=num_warmup_epochs,
-        num_training_steps=max_epoch
+        num_training_steps=max_epoch,
+        num_cycles=num_cycles
     )
     return scheduler
 
@@ -183,10 +186,11 @@ def get_cosine_schedule_with_warmup(
     """
 
     def lr_lambda(current_step):
+        current_step = current_step % (num_training_steps/num_cycles/2)
         if current_step < num_warmup_steps:
             return max(1e-6, float(current_step) / float(max(1, num_warmup_steps)))
-        progress = float(current_step - num_warmup_steps) / float(max(1, num_training_steps - num_warmup_steps))
-        return max(0.0, 0.5 * (1.0 + math.cos(math.pi * float(num_cycles) * 2.0 * progress)))
+        progress = float(current_step - num_warmup_steps) / float(max(1, num_training_steps/num_cycles - num_warmup_steps))
+        return max(0.0, 0.5 * (1.0 + math.cos(math.pi * 2.0 * progress)))
 
     return optim.lr_scheduler.LambdaLR(optimizer, lr_lambda, last_epoch)
 
