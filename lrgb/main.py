@@ -65,6 +65,8 @@ def params_count(model):
     for p in model.parameters():
         if hasattr(p, 'upper_triangular_params'):
             n_el = p.upper_triangular_params
+        elif hasattr(p, 'complex_hermitian_params'):
+            n_el = p.complex_hermitian_params
         else:
             n_el = p.numel()
         if torch.is_complex(p):
