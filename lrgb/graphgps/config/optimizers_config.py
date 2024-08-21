@@ -23,6 +23,9 @@ def extended_optim_cfg(cfg):
     # For schedulers with warm-up phase, set the warm-up number of epochs
     cfg.optim.num_warmup_epochs = 50
 
+    # For cosine scheduler, number of cycles
+    cfg.optim.num_cycles = 0.5
+
     # Clip gradient norms while training
     cfg.optim.clip_grad_norm = False
     cfg.optim.clip_grad_norm_value = 1.0
