@@ -256,6 +256,7 @@ class HermitianGCNConv(MessagePassing):
         #                   weight_initializer='glorot')
         self.lin = torch.nn.Linear(in_channels, out_channels, bias=False)
         self.lin.weight = torch.nn.Parameter(torch.complex(torch.zeros_like(self.lin.weight), self.lin.weight))
+        self.lin.weight.complex_hermitian_params = in_channels*in_channels//2
 
         if bias:
             self.bias = torch.nn.Parameter(torch.zeros(out_channels, dtype=torch.cfloat))
