@@ -1,7 +1,6 @@
 out_dir: results
 metric_best: mae
 metric_agg: argmin
-seed: 2000
 wandb:
   use: False
   project: peptides-struct
