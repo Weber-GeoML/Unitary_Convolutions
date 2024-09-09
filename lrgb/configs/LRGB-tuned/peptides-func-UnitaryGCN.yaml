@@ -1,6 +1,5 @@
 out_dir: results
 metric_best: ap
-seed: 2000
 wandb:
   use: False
   project: peptides-func
