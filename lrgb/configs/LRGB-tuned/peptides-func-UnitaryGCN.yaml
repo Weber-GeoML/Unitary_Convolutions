@@ -10,13 +10,13 @@ dataset:
   task_type: classification_multilabel
   transductive: False
   node_encoder: True
-  node_encoder_name: Atom+RWSE
+  node_encoder_name: Atom+LapPE
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: Bond
   edge_encoder_bn: False
 posenc_LapPE:
-  enable: False
+  enable: True
   eigen:
     laplacian_norm: none
     eigvec_norm: L2
@@ -26,7 +26,7 @@ posenc_LapPE:
   layers: 2
   raw_norm_type: none
 posenc_RWSE:
-  enable: True
+  enable: False
   kernel:
     times_func: range(1,21)
   model: Linear
@@ -44,21 +44,26 @@ model:
 gnn:
   head: mlp_graph
   layers_pre_mp: 0
-  layers_mp: 8
+  layers_mp: 10
   layers_post_mp: 3
-  dim_inner: 160
+  dim_inner: 135
   layer_type: unitarygcnconv
   normalize_adj: True
   act: c_gelu
   residual: True
-  dropout: 0.15
+  dropout: 0.1
   use_hermitian: False
+  layers_conv_setup: 1                  # to incorporate edge features
+  conv_setup_layer_type: gineconv   # to incorporate edge features
 optim:
   clip_grad_norm: True
   optimizer: adamW
   weight_decay: 0.0
   base_lr: 0.001
-  min_lr: 0.000001
-  max_epoch: 500
+  min_lr: 0.00005
+  max_epoch: 4000
   scheduler: cosine_with_warmup
-  num_warmup_epochs: 5
+  num_warmup_epochs: 10
+  schedule_patience: 25                 # for reduce_on_plateau
+  reduce_factor: 0.9                    # for reduce_on_plateau         
+  num_cycles: 0.5                       # cycles/2 for cosine_with_warmup
