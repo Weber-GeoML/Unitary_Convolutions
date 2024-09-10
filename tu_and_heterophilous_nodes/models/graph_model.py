@@ -5,7 +5,6 @@ from torch.nn import ModuleList, Dropout, ReLU
 from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GatedGraphConv, GINConv, FiLMConv, global_mean_pool, GATConv, SuperGATConv, global_max_pool
 import torch.nn.functional as F
 from models.layers import TaylorGCNConv, ComplexGCNConv
-# from models.test_layers import UnitaryGCNConvLayer
 from models.complex_valued_layers import UnitaryGCNConvLayer
 from models.real_valued_layers import OrthogonalGCNConvLayer
 

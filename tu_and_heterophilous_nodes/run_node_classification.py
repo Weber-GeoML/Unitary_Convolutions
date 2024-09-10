@@ -5,6 +5,7 @@ from torch_geometric.transforms import LargestConnectedComponents, ToUndirected
 from experiments.node_classification import Experiment
 
 import time
+import os
 import torch
 import numpy as np
 import pandas as pd
@@ -15,8 +16,8 @@ from torch_geometric.transforms import Compose
 
 
 default_args = AttrDict({
-    "dropout": 0.5,
-    "num_layers": 4,
+    "dropout": 0.2,
+    "num_layers": 8,
     "hidden_dim": 512,
     "learning_rate": 3 * 1e-5,
     "layer_type": "Unitary",
@@ -26,7 +27,7 @@ default_args = AttrDict({
     "rewiring": None,
     "num_iterations": 1,
     "num_relations": 2,
-    "patience": 100,
+    "patience": 2000,
     "dataset": None,
     "borf_batch_add" : 4,
     "borf_batch_remove" : 2,
@@ -55,14 +56,8 @@ minesweeper = HeterophilousGraphDataset(root="data", name="Minesweeper")
 tolokers = HeterophilousGraphDataset(root="data", name="Tolokers", transform=largest_cc)
 questions = HeterophilousGraphDataset(root="data", name="Questions", transform=largest_cc)
 
-"""
-datasets = {"cornell": cornell, "wisconsin": wisconsin, "texas": texas, "chameleon": chameleon,
-            "cora": cora, "citeseer": citeseer, "pubmed": pubmed, "roman_empire": roman_empire,
-            "amazon_ratings": amazon_ratings, "minesweeper": minesweeper}
-"""
 
-datasets = {"roman_empire": roman_empire, "amazon_ratings": amazon_ratings, "minesweeper": minesweeper}
-
+datasets = {"roman_empire": roman_empire, "amazon_ratings": amazon_ratings, "minesweeper": minesweeper, "tolokers": tolokers, "questions": questions}
 for key in datasets:
     dataset = datasets[key]
     dataset.data.edge_index = to_undirected(dataset.data.edge_index)
@@ -84,6 +79,58 @@ for key in datasets:
     accuracies = []
     print(f"TESTING: {key} ({args.rewiring})")
     dataset = datasets[key]
+
+
+    # encode the dataset using the given encoding, if args.encoding is not None
+    if args.encoding in ["LAPE", "RWPE", "LDP", "SUB", "EGO"]:
+
+        if os.path.exists(f"data/{key}_{args.encoding}.pt"):
+            print('ENCODING ALREADY COMPLETED...')
+            dataset = torch.load(f"data/{key}_{args.encoding}.pt")
+
+        else:
+            print('ENCODING STARTED...')
+            org_dataset_len = len(dataset)
+            drop_datasets = []
+            current_graph = 0
+
+            for i in range(org_dataset_len):
+                if args.encoding == "LAPE":
+                    num_nodes = dataset[i].num_nodes
+                    eigvecs = np.min([num_nodes, 8]) - 2
+                    transform = T.AddLaplacianEigenvectorPE(k=eigvecs)
+
+                elif args.encoding == "RWPE":
+                    transform = T.AddRandomWalkPE(walk_length=16)
+
+                elif args.encoding == "LDP":
+                    transform = T.LocalDegreeProfile()
+
+                elif args.encoding == "SUB":
+                    transform = T.RootedRWSubgraph(walk_length=10)
+
+                elif args.encoding == "EGO":
+                    transform = T.RootedEgoNets(num_hops=2)
+
+                elif args.encoding == "VN":
+                    transform = T.VirtualNode()
+
+                try:
+                    dataset[i] = transform(dataset[i])
+                    print(f"Graph {current_graph} of {org_dataset_len} encoded with {args.encoding}")
+                    current_graph += 1
+
+                except:
+                    print(f"Graph {current_graph} of {org_dataset_len} dropped due to encoding error")
+                    drop_datasets.append(i)
+                    current_graph += 1
+
+            for i in sorted(drop_datasets, reverse=True):
+                dataset.pop(i)
+
+            # save the dataset to a file in the data folder
+            torch.save(dataset, f"data/{key}_{args.encoding}.pt")
+
 
     start = time.time()
     for trial in range(args.num_trials):

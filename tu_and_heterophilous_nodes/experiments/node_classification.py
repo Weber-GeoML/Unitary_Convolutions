@@ -10,14 +10,14 @@ from math import inf
 from models.node_model import GCN, ComplexGCN, UnitaryGCN, OrthogonalGCN
 
 default_args = AttrDict(
-    {"learning_rate": 0.0007, # 1e-3,
-    "max_epochs": 1500,
+    {"learning_rate": 1e-5,
+    "max_epochs": 2000,
     "display": True,
     "device": None,
     "eval_every": 1,
-    "stopping_criterion": "train", # "validation",
-    "stopping_threshold": 1.01,
-    "patience": 100,
+    "stopping_criterion": "validation",
+    "stopping_threshold": 1,
+    "patience": 2000,
     "train_fraction": 0.5,
     "validation_fraction": 0.25,
     "test_fraction": 0.25,
@@ -25,7 +25,7 @@ default_args = AttrDict(
     "weight_decay": 1e-5,
     "hidden_dim": 512,
     "hidden_layers": None,
-    "num_layers": 3,
+    "num_layers": 8,
     "batch_size": 32,
     "layer_type": "Unitary",
     "num_relations": 1,
@@ -50,13 +50,12 @@ class Experiment:
         if self.args.hidden_layers is None:
             self.args.hidden_layers = [self.args.hidden_dim] * self.args.num_layers
 
-        if self.args.layer_type == "Complex":
-            self.model = ComplexGCN(self.args).to(self.args.device)
         if self.args.layer_type == "Orthogonal":
             self.model = OrthogonalGCN(self.args).to(self.args.device)
-        # else:
-            # self.model = GCN(self.args).to(self.args.device)
-        self.model = UnitaryGCN(self.args).to(self.args.device)
+        elif self.args.layer_type == "Unitary":
+            self.model = UnitaryGCN(self.args).to(self.args.device)
+        else:
+            self.model = GCN(self.args).to(self.args.device)
 
         if self.test_mask is None:
             node_indices = list(range(self.num_nodes))

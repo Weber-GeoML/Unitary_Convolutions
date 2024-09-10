@@ -6,9 +6,9 @@ from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GINConv, FiLMConv, g
 import torch.nn.functional as F
 
 from models.layers import TaylorGCNConv, ComplexGCNConv
-# from models.test_layers import UnitaryGCNConvLayer
 from models.real_valued_layers import OrthogonalGCNConvLayer
 from models.complex_valued_layers import UnitaryGCNConvLayer
+
 
 class RGINConv(torch.nn.Module):
     def __init__(self, in_features, out_features, num_relations):
@@ -27,6 +27,7 @@ class RGINConv(torch.nn.Module):
             rel_edge_index = edge_index[:, edge_type==i]
             x_new += conv(x, rel_edge_index)
         return x_new
+
 
 class GCN(torch.nn.Module):
     def __init__(self, args):
@@ -82,77 +83,6 @@ class GCN(torch.nn.Module):
         return x
 
 
-class ComplexGCN(nn.Module):
-
-    def __init__(self, args):
-        super(ComplexGCN, self).__init__()
-        self.conv_layers = nn.ModuleList()
-        self.input_dim = args.input_dim
-        self.hidden_dim = args.hidden_dim
-        self.norm = torch.nn.LayerNorm(self.input_dim)
-        output_dim = args.output_dim
-        self.num_layers = args.num_layers
-        self.T = args.T
-        self.dropout = Dropout(p=args.dropout)
-        """
-        for _ in range(num_layers):
-            # sample_layer = ComplexGCNConv(input_dim, hidden_dim)
-            sample_layer = ComplexGCNConv(hidden_dim, hidden_dim)
-            taylor_layer = TaylorGCNConv(sample_layer, T=self.T)
-            self.conv_layers.append(taylor_layer)
-            # input_dim = hidden_dim
-        """
-        self.conv_layers.append(UnitaryGCNConvLayer(self.input_dim, self.hidden_dim))
-        for _ in range(self.num_layers):
-            self.conv_layers.append(UnitaryGCNConvLayer(self.hidden_dim, self.hidden_dim, use_hermitian=True))
-        self.output_layer = nn.Linear(self.hidden_dim, output_dim)
-        self.gcn_in_layer = UnitaryGCNConvLayer(self.input_dim, self.hidden_dim)
-        # self.gcn_in_layer = GCNConv(input_dim, hidden_dim)
-        self.gcn_mid_layer = UnitaryGCNConvLayer(self.hidden_dim, self.hidden_dim, use_hermitian=True)
-        self.gcn_out_layer = GCNConv(self.hidden_dim, output_dim)
-        self.reset_parameters()
-
-    """
-    def forward(self, data):
-        # x, edge_index = data.x, data.edge_index
-        # x = self.gcn_in_layer(x, edge_index)
-        # data.x = self.gcn_in_layer(data.x, data.edge_index)
-        # print("Initial Layer Output:", data.x)
-        # print(data.x.shape[1])
-        # print(self.input_dim)
-        if data.x.shape[1] == self.input_dim:
-            # print("Original Data Shape:", data.x.shape, data.edge_index.shape)
-            data = self.gcn_in_layer(data)
-        else:
-            data = self.gcn_mid_layer(data)
-        for conv in self.conv_layers:
-            # print("Visited conv layer")
-            data = conv(data)
-            # print("Intermediate Layer Output:", data.x)
-            # x_real = F.relu(x.real)
-            # x_imag = F.relu(x.imag)
-            # x = torch.complex(x_real, x_imag)
-        # x = self.output_layer(x.real)
-        x = self.gcn_out_layer(data.x.real, data.edge_index)
-        # x = self.output_layer(data.x.real)
-        return x
-    """
-    
-    def reset_parameters(self):
-        pass
-
-    def forward(self, data):
-        graph = copy.deepcopy(data)
-        # graph.x = self.norm(graph.x)
-        for i, layer in enumerate(self.conv_layers):
-            graph = layer(graph)
-            if i != self.num_layers - 1:
-                # x = self.act_fn(x)
-                graph.x.real = self.dropout(graph.x.real)
-                graph.x.imag = self.dropout(graph.x.imag)
-        return self.output_layer(graph.x.real)
-    
-
 class UnitaryGCN(nn.Module):
 
     def __init__(self, args):
@@ -170,7 +100,6 @@ class UnitaryGCN(nn.Module):
             self.conv_layers.append(UnitaryGCNConvLayer(self.hidden_dim, self.hidden_dim, use_hermitian=True))
         self.output_layer = nn.Linear(self.hidden_dim, output_dim)
         self.gcn_in_layer = UnitaryGCNConvLayer(self.input_dim, self.hidden_dim)
-        # self.gcn_in_layer = GCNConv(input_dim, hidden_dim)
         self.gcn_mid_layer = UnitaryGCNConvLayer(self.hidden_dim, self.hidden_dim, use_hermitian=True)
         self.gcn_out_layer = GCNConv(self.hidden_dim, output_dim)
         self.reset_parameters()
@@ -180,11 +109,9 @@ class UnitaryGCN(nn.Module):
 
     def forward(self, data):
         graph = copy.deepcopy(data)
-        # graph.x = self.norm(graph.x)
         for i, layer in enumerate(self.conv_layers):
             graph = layer(graph)
             if i != self.num_layers - 1:
-                # x = self.act_fn(x)
                 graph.x.real = self.dropout(graph.x.real)
                 graph.x.imag = self.dropout(graph.x.imag)
         return self.output_layer(graph.x.real)
@@ -207,7 +134,6 @@ class OrthogonalGCN(nn.Module):
                 self.conv_layers.append(OrthogonalGCNConvLayer(self.hidden_dim, self.hidden_dim, use_hermitian=True))
             self.output_layer = nn.Linear(self.hidden_dim, output_dim)
             self.gcn_in_layer = OrthogonalGCNConvLayer(self.input_dim, self.hidden_dim)
-            # self.gcn_in_layer = GCNConv(input_dim, hidden_dim)
             self.gcn_mid_layer = OrthogonalGCNConvLayer(self.hidden_dim, self.hidden_dim, use_hermitian=True)
             self.gcn_out_layer = GCNConv(self.hidden_dim, output_dim)
             self.reset_parameters()
@@ -217,11 +143,9 @@ class OrthogonalGCN(nn.Module):
     
         def forward(self, data):
             graph = copy.deepcopy(data)
-            # graph.x = self.norm(graph.x)
             for i, layer in enumerate(self.conv_layers):
                 graph = layer(graph)
                 if i != self.num_layers - 1:
-                    # x = self.act_fn(x)
                     graph.x.real = self.dropout(graph.x.real)
                     graph.x.imag = self.dropout(graph.x.imag)
             return self.output_layer(graph.x.real)
