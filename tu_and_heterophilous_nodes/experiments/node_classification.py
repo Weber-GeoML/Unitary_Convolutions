@@ -7,7 +7,7 @@ from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from math import inf
 
-from models.node_model import GCN, ComplexGCN, UnitaryGCN, OrthogonalGCN
+from models.node_model import GCN, UnitaryGCN, OrthogonalGCN
 
 default_args = AttrDict(
     {"learning_rate": 1e-5,
