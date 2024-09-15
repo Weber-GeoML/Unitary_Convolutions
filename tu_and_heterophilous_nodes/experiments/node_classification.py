@@ -45,6 +45,8 @@ class Experiment:
         self.args.input_dim = self.dataset[0].x.shape[1]
         self.args.output_dim = torch.amax(self.dataset[0].y).item() + 1
         self.num_nodes = self.dataset[0].x.size(axis=0)
+        self.metric = 'Accuracy' if self.num_nodes > 20000 and self.num_nodes < 25000 else 'ROC AUC'
+        print("Metric: ", self.metric)
 
         if self.args.device is None:
             self.args.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -109,7 +111,7 @@ class Experiment:
 
             if epoch % self.args.eval_every == 0:
                 # compute Accuracy for Roman Empire and Amazon Ratings
-                if self.dataset.data.x.shape[0] > 20000 and self.dataset.data.x.shape[0] < 25000:
+                if self.metric == 'Accuracy':
                     train_acc = self.eval(batch=batch, mask=self.train_mask)
                     validation_acc = self.eval(batch=batch, mask=self.validation_mask)
                     test_acc = self.eval(batch=batch, mask=self.test_mask)
@@ -150,8 +152,10 @@ class Experiment:
                         epochs_no_improve += 1
                     else:
                         epochs_no_improve += 1
-                if self.args.display:
+                if self.args.display and self.metric == 'Accuracy':
                     print(f'Epoch {epoch}, Train acc: {train_acc}, Validation acc: {validation_acc}{new_best_str}, Test acc: {test_acc}')
+                elif self.args.display and self.metric == 'ROC AUC':
+                    print(f'Epoch {epoch}, Train ROC AUC: {train_acc}, Validation ROC AUC: {validation_acc}{new_best_str}, Test ROC AUC: {test_acc}')
                 if epochs_no_improve > self.args.patience:
                     if self.args.display:
                         print(f'{self.args.patience} epochs without improvement, stopping training')
