@@ -43,13 +43,6 @@ args += get_args_from_input()
 
 
 largest_cc = LargestConnectedComponents()
-cornell = WebKB(root="data", name="Cornell")
-wisconsin = WebKB(root="data", name="Wisconsin")
-texas = WebKB(root="data", name="Texas")
-chameleon = WikipediaNetwork(root="data", name="chameleon")
-cora = Planetoid(root="data", name="cora")
-citeseer = Planetoid(root="data", name="citeseer")
-pubmed = Planetoid(root="data", name="pubmed")
 roman_empire = HeterophilousGraphDataset(root="data", name="Roman-empire")
 amazon_ratings = HeterophilousGraphDataset(root="data", name="Amazon-ratings")
 minesweeper = HeterophilousGraphDataset(root="data", name="Minesweeper")

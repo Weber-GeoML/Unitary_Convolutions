@@ -5,7 +5,6 @@ from torch.nn import ModuleList, Dropout, ReLU
 from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GINConv, FiLMConv, global_mean_pool
 import torch.nn.functional as F
 
-from models.layers import TaylorGCNConv, ComplexGCNConv
 from models.real_valued_layers import OrthogonalGCNConvLayer
 from models.complex_valued_layers import UnitaryGCNConvLayer
 
@@ -61,10 +60,6 @@ class GCN(torch.nn.Module):
             return SAGEConv(in_features, out_features)
         elif self.layer_type == "FiLM":
             return FiLMConv(in_features, out_features)
-        elif self.layer_type == "Taylor":
-            return TaylorGCNConv(in_features, out_features)
-        elif self.layer_type == "Complex":
-            return ComplexGCNConv(in_features, out_features)
         
     def reset_parameters(self):
         for layer in self.layers:
