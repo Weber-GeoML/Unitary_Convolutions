@@ -95,7 +95,7 @@ class UnitaryGCN(nn.Module):
         self.num_layers = args.num_layers
         self.T = args.T
         self.dropout = Dropout(p=args.dropout)
-        self.conv_layers.append(UnitaryGCNConvLayer(self.input_dim, self.hidden_dim))
+        self.conv_layers.append(UnitaryGCNConvLayer(self.input_dim, self.hidden_dim, residual=False))
         for _ in range(self.num_layers):
             self.conv_layers.append(UnitaryGCNConvLayer(self.hidden_dim, self.hidden_dim, use_hermitian=True))
         self.output_layer = nn.Linear(self.hidden_dim, output_dim)
