@@ -114,9 +114,9 @@ class Experiment:
             if epoch % self.args.eval_every == 0:
                 # compute Accuracy for Roman Empire and Amazon Ratings
                 if self.metric == 'Accuracy':
-                    train_acc = self.eval(batch=batch, mask=self.train_mask)
-                    validation_acc = self.eval(batch=batch, mask=self.validation_mask)
-                    test_acc = self.eval(batch=batch, mask=self.test_mask)
+                    train_acc = self.compute_acc(batch=batch, mask=self.train_mask)
+                    validation_acc = self.compute_acc(batch=batch, mask=self.validation_mask)
+                    test_acc = self.compute_acc(batch=batch, mask=self.test_mask)
 
                 # compute ROC AUC for the rest
                 else:
