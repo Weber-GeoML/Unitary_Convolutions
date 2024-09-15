@@ -11,7 +11,7 @@ from math import inf
 from models.node_model import GCN, UnitaryGCN, OrthogonalGCN
 
 default_args = AttrDict(
-    {"learning_rate": 1e-5,
+    {"learning_rate": 3 * 1e-5,
     "max_epochs": 2000,
     "display": True,
     "device": None,
@@ -27,7 +27,7 @@ default_args = AttrDict(
     "hidden_dim": 512,
     "hidden_layers": None,
     "num_layers": 8,
-    "batch_size": 32,
+    "batch_size": 50,
     "layer_type": "Unitary",
     "num_relations": 1,
     "T": 20
@@ -102,10 +102,12 @@ class Experiment:
             _, train_pred = out[self.train_mask].max(dim=1)
             train_correct = train_pred.eq(y[self.train_mask]).sum().item() / train_size
 
+            val_loss = self.loss_fn(input=out[self.validation_mask], target=y[self.validation_mask])
+
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-            scheduler.step(loss)
+            scheduler.step(val_loss)
 
             new_best_str = ''
 
