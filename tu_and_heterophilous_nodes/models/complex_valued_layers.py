@@ -81,7 +81,7 @@ class ComplexDropout(torch.nn.Module):
             return F.dropout(x, p=self.dropout, training=self.training)
 
 class UnitaryGCNConvLayer(nn.Module):
-    def __init__(self, dim_in, dim_out, dropout = 0.0, residual = False, 
+    def __init__(self, dim_in, dim_out, dropout = 0.0, residual = True, 
                  global_bias = True, T = 10, use_hermitian = False,
                  activation = torch.nn.ReLU, 
                  **kwargs):

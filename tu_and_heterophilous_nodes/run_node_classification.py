@@ -88,34 +88,32 @@ for key in datasets:
             print('ENCODING ALREADY COMPLETED...')
             dataset = torch.load(f"data/{key}_{args.encoding}.pt")
 
+        elif args.encoding == "RWPE":
+            print('ENCODING STARTED...')
+            transform = T.AddRandomWalkPE(walk_length=16)
+            dataset.data.x = torch.cat((transform(dataset.data).random_walk_pe, dataset.data.x), dim=1)
+
         else:
             print('ENCODING STARTED...')
-            org_dataset_len = len(dataset)
-            current_graph = 0
 
-            for i in range(org_dataset_len):
-                if args.encoding == "LAPE":
-                    num_nodes = dataset[i].num_nodes
-                    eigvecs = np.min([num_nodes, 8]) - 2
-                    transform = T.AddLaplacianEigenvectorPE(k=eigvecs)
+            if args.encoding == "LAPE":
+                num_nodes = dataset[i].num_nodes
+                eigvecs = np.min([num_nodes, 8]) - 2
+                transform = T.AddLaplacianEigenvectorPE(k=eigvecs)
 
-                elif args.encoding == "RWPE":
-                    transform = T.AddRandomWalkPE(walk_length=16)
+            elif args.encoding == "LDP":
+                transform = T.LocalDegreeProfile()
 
-                elif args.encoding == "LDP":
-                    transform = T.LocalDegreeProfile()
+            elif args.encoding == "SUB":
+                transform = T.RootedRWSubgraph(walk_length=10)
 
-                elif args.encoding == "SUB":
-                    transform = T.RootedRWSubgraph(walk_length=10)
+            elif args.encoding == "EGO":
+                transform = T.RootedEgoNets(num_hops=2)
 
-                elif args.encoding == "EGO":
-                    transform = T.RootedEgoNets(num_hops=2)
+            elif args.encoding == "VN":
+                transform = T.VirtualNode()
 
-                elif args.encoding == "VN":
-                    transform = T.VirtualNode()
-
-                new_data = torch.cat((transform(dataset.data).random_walk_pe, dataset.data.x), dim=1)
-                dataset.data.x = new_data
+            dataset.data = transform(dataset.data)
 
             # save the dataset to a file in the data folder
             torch.save(dataset, f"data/{key}_{args.encoding}.pt")
