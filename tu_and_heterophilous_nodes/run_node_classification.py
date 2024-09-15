@@ -114,9 +114,8 @@ for key in datasets:
                 elif args.encoding == "VN":
                     transform = T.VirtualNode()
 
-                dataset[i] = transform(dataset[i])
-                print(f"Graph {current_graph} of {org_dataset_len} encoded with {args.encoding}")
-                current_graph += 1
+                new_data = torch.cat((transform(dataset.data).random_walk_pe, dataset.data.x), dim=1)
+                dataset.data.x = new_data
 
             # save the dataset to a file in the data folder
             torch.save(dataset, f"data/{key}_{args.encoding}.pt")
