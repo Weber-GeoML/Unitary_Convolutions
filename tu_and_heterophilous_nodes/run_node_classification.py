@@ -91,7 +91,6 @@ for key in datasets:
         else:
             print('ENCODING STARTED...')
             org_dataset_len = len(dataset)
-            drop_datasets = []
             current_graph = 0
 
             for i in range(org_dataset_len):
@@ -115,18 +114,9 @@ for key in datasets:
                 elif args.encoding == "VN":
                     transform = T.VirtualNode()
 
-                try:
-                    dataset[i] = transform(dataset[i])
-                    print(f"Graph {current_graph} of {org_dataset_len} encoded with {args.encoding}")
-                    current_graph += 1
-
-                except:
-                    print(f"Graph {current_graph} of {org_dataset_len} dropped due to encoding error")
-                    drop_datasets.append(i)
-                    current_graph += 1
-
-            for i in sorted(drop_datasets, reverse=True):
-                dataset.pop(i)
+                dataset[i] = transform(dataset[i])
+                print(f"Graph {current_graph} of {org_dataset_len} encoded with {args.encoding}")
+                current_graph += 1
 
             # save the dataset to a file in the data folder
             torch.save(dataset, f"data/{key}_{args.encoding}.pt")
