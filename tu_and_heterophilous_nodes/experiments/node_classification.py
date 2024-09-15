@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 from torch_geometric.loader import DataLoader
 from torch.utils.data import random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from sklearn.metrics import roc_auc_score
 from math import inf
 
 from models.node_model import GCN, UnitaryGCN, OrthogonalGCN
@@ -107,9 +108,17 @@ class Experiment:
             new_best_str = ''
 
             if epoch % self.args.eval_every == 0:
-                train_acc = self.eval(batch=batch, mask=self.train_mask)
-                validation_acc = self.eval(batch=batch, mask=self.validation_mask)
-                test_acc = self.eval(batch=batch, mask=self.test_mask)
+                # compute Accuracy for Roman Empire and Amazon Ratings
+                if self.dataset.data.x.shape[0] > 20000 and self.dataset.data.x.shape[0] < 25000:
+                    train_acc = self.eval(batch=batch, mask=self.train_mask)
+                    validation_acc = self.eval(batch=batch, mask=self.validation_mask)
+                    test_acc = self.eval(batch=batch, mask=self.test_mask)
+
+                # compute ROC AUC for the rest
+                else:
+                    train_acc = self.compute_roc_auc(batch=batch, mask=self.train_mask)
+                    validation_acc = self.compute_roc_auc(batch=batch, mask=self.validation_mask)
+                    test_acc = self.compute_roc_auc(batch=batch, mask=self.test_mask)
 
                 if self.args.stopping_criterion == "train":
                     if train_acc > train_goal:
@@ -149,7 +158,7 @@ class Experiment:
                         print(f'Best train acc: {best_train_acc}, Best validation loss: {best_validation_acc}, Best test loss: {best_test_acc}')
                     return train_acc, validation_acc, test_acc
 
-    def eval(self, batch, mask):
+    def compute_acc(self, batch, mask):
         self.model.eval()
         with torch.no_grad():
             sample_size = len(mask)
@@ -157,3 +166,13 @@ class Experiment:
             total_correct = pred.eq(batch.y[mask]).sum().item()
             acc = total_correct / sample_size
             return acc
+        
+    def compute_roc_auc(self, batch, mask):
+        self.model.eval()
+        with torch.no_grad():
+            sample_size = len(mask)
+            _, pred = self.model(batch)[mask].max(dim=1)
+            y_pred = pred.cpu().numpy()
+            y_true = batch.y[mask].cpu().numpy()
+            roc_auc = roc_auc_score(y_true, y_pred)
+            return roc_auc
