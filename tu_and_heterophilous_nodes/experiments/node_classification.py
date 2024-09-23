@@ -71,11 +71,10 @@ class Experiment:
         
     def run(self):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
-        scheduler = ReduceLROnPlateau(optimizer,  patience=25, factor=0.1)
+        scheduler = ReduceLROnPlateau(optimizer,  patience=100, factor=0.5)
         step_size = 25  # Specify the number of epochs after which to decrease the learning rate
         gamma = 0.1     # Specify the factor by which to decrease the learning rate
 
-        # scheduler = StepLR(optimizer, step_size=step_size, gamma=gamma)
 
         if self.args.display:
             print("Starting training")
@@ -100,29 +99,33 @@ class Experiment:
             loss = self.loss_fn(input=out[self.train_mask], target=y[self.train_mask])
             total_loss += loss.item()
             _, train_pred = out[self.train_mask].max(dim=1)
-            train_correct = train_pred.eq(y[self.train_mask]).sum().item() / train_size
-
-            val_loss = self.loss_fn(input=out[self.validation_mask], target=y[self.validation_mask])
 
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
-            scheduler.step(val_loss)
+
 
             new_best_str = ''
 
             if epoch % self.args.eval_every == 0:
                 # compute Accuracy for Roman Empire and Amazon Ratings
                 if self.metric == 'Accuracy':
-                    train_acc = self.compute_acc(batch=batch, mask=self.train_mask)
-                    validation_acc = self.compute_acc(batch=batch, mask=self.validation_mask)
-                    test_acc = self.compute_acc(batch=batch, mask=self.test_mask)
+                    self.model.eval()
+                    with torch.no_grad():
+                        pred = self.model(batch)
+                    train_acc = self.compute_acc(pred, y, mask=self.train_mask)
+                    validation_acc = self.compute_acc(pred, y, mask=self.validation_mask)
+                    test_acc = self.compute_acc(pred, y, mask=self.test_mask)
 
                 # compute ROC AUC for the rest
                 else:
-                    train_acc = self.compute_roc_auc(batch=batch, mask=self.train_mask)
-                    validation_acc = self.compute_roc_auc(batch=batch, mask=self.validation_mask)
-                    test_acc = self.compute_roc_auc(batch=batch, mask=self.test_mask)
+                    self.model.eval()
+                    with torch.no_grad():
+                        pred = self.model(batch)
+                    train_acc = self.compute_roc_auc(pred, y, mask=self.train_mask)
+                    validation_acc = self.compute_roc_auc(pred, y, mask=self.validation_mask)
+                    test_acc = self.compute_roc_auc(pred, y, mask=self.test_mask)
+                scheduler.step(-validation_acc)
 
                 if self.args.stopping_criterion == "train":
                     if train_acc > train_goal:
@@ -155,30 +158,27 @@ class Experiment:
                     else:
                         epochs_no_improve += 1
                 if self.args.display and self.metric == 'Accuracy':
-                    print(f'Epoch {epoch}, Train acc: {train_acc}, Validation acc: {validation_acc}{new_best_str}, Test acc: {test_acc}')
+                    print(f'Epoch {epoch}, Train acc: {train_acc}, Validation acc: {validation_acc}{new_best_str}, Test acc: {test_acc}, Learning Rate: {scheduler.get_last_lr()}', flush=True)
                 elif self.args.display and self.metric == 'ROC AUC':
-                    print(f'Epoch {epoch}, Train ROC AUC: {train_acc}, Validation ROC AUC: {validation_acc}{new_best_str}, Test ROC AUC: {test_acc}')
+                    print(f'Epoch {epoch}, Train ROC AUC: {train_acc}, Validation ROC AUC: {validation_acc}{new_best_str}, Test ROC AUC: {test_acc}, Learning Rate: {scheduler.get_last_lr()}', flush=True)
                 if epochs_no_improve > self.args.patience:
                     if self.args.display:
-                        print(f'{self.args.patience} epochs without improvement, stopping training')
-                        print(f'Best train acc: {best_train_acc}, Best validation loss: {best_validation_acc}, Best test loss: {best_test_acc}')
+                        print(f'{self.args.patience} epochs without improvement, stopping training', flush=True)
+                        print(f'Best train acc: {best_train_acc}, Best validation loss: {best_validation_acc}, Best test loss: {best_test_acc}', flush=True)
                     return train_acc, validation_acc, test_acc
+        return train_acc, validation_acc, test_acc
 
-    def compute_acc(self, batch, mask):
-        self.model.eval()
-        with torch.no_grad():
-            sample_size = len(mask)
-            _, pred = self.model(batch)[mask].max(dim=1)
-            total_correct = pred.eq(batch.y[mask]).sum().item()
-            acc = total_correct / sample_size
-            return acc
+    def compute_acc(self, pred, y, mask):
+        _, pred = pred[mask].max(dim=1)
+        sample_size = len(mask)
+        total_correct = pred.eq(y[mask]).sum().item()
+        acc = total_correct / sample_size
+        return acc
         
-    def compute_roc_auc(self, batch, mask):
-        self.model.eval()
-        with torch.no_grad():
-            sample_size = len(mask)
-            _, pred = self.model(batch)[mask].max(dim=1)
-            y_pred = pred.cpu().numpy()
-            y_true = batch.y[mask].cpu().numpy()
-            roc_auc = roc_auc_score(y_true, y_pred)
-            return roc_auc
+    def compute_roc_auc(self, pred, y, mask):
+        pred = pred[mask]
+        probs = F.softmax(pred, dim=1)
+        y_pred = probs.cpu().numpy()
+        y_true = y[mask].cpu().numpy()
+        roc_auc = roc_auc_score(y_true, y_pred[:,1])
+        return roc_auc
