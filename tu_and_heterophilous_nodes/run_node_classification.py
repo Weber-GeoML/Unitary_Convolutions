@@ -90,9 +90,10 @@ for key in datasets:
             print('ENCODING STARTED...')
 
             if args.encoding == "LAPE":
-                num_nodes = dataset[i].num_nodes
-                eigvecs = np.min([num_nodes, 8]) - 2
-                transform = T.AddLaplacianEigenvectorPE(k=eigvecs)
+                # num_nodes = dataset[i].num_nodes
+                # eigvecs = np.min([num_nodes, 8]) - 2
+                # transform = T.AddLaplacianEigenvectorPE(k=eigvecs)
+                transform = T.AddLaplacianEigenvectorPE(k=8)
 
             elif args.encoding == "LDP":
                 transform = T.LocalDegreeProfile()
@@ -138,6 +139,8 @@ for key in datasets:
         "hidden_dim": args.hidden_dim,
         "learning_rate": args.learning_rate,
         "dropout": args.dropout,
+        "residual": args.residual,
+        "hermitian": args.hermitian,
         # "train_mean": np.mean(accuracies),
         "test_mean": np.mean(accuracies),
         "ci":  2 * np.std(accuracies)/(args.num_trials ** 0.5),
