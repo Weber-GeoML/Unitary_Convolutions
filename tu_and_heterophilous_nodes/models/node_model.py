@@ -109,11 +109,7 @@ class UnitaryGCN(nn.Module):
         graph = copy.deepcopy(data)
         for i, layer in enumerate(self.conv_layers):
             graph = layer(graph)
-            # if i != self.num_layers - 1:
-            #     graph.x.real = self.dropout(graph.x.real)
-            #     graph.x.imag = self.dropout(graph.x.imag)
             
-        # return self.output_layer(graph.x.real)
         return self.output_layer(graph.x.real,graph.edge_index)
     
 class OrthogonalGCN(nn.Module):
