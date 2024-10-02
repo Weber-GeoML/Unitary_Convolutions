@@ -24,14 +24,9 @@ default_args = AttrDict({
     "display": True,
     "num_trials": 10,
     "eval_every": 1,
-    "rewiring": None,
-    "num_iterations": 1,
     "num_relations": 2,
     "patience": 2000,
     "dataset": None,
-    "borf_batch_add" : 4,
-    "borf_batch_remove" : 2,
-    "sdrf_remove_edges" : False,
     "encoding": None,
     "T" : 20
 })
@@ -90,9 +85,6 @@ for key in datasets:
             print('ENCODING STARTED...')
 
             if args.encoding == "LAPE":
-                # num_nodes = dataset[i].num_nodes
-                # eigvecs = np.min([num_nodes, 8]) - 2
-                # transform = T.AddLaplacianEigenvectorPE(k=eigvecs)
                 transform = T.AddLaplacianEigenvectorPE(k=8)
 
             elif args.encoding == "LDP":
@@ -125,7 +117,6 @@ for key in datasets:
         train_acc = max(train_accs)
         test_acc = max(test_accs)
         accuracies.append(test_acc)
-        # accuracies.append(train_acc)
     end = time.time()
     run_duration = end - start
 
@@ -141,7 +132,6 @@ for key in datasets:
         "dropout": args.dropout,
         "residual": args.residual,
         "hermitian": args.hermitian,
-        # "train_mean": np.mean(accuracies),
         "test_mean": np.mean(accuracies),
         "ci":  2 * np.std(accuracies)/(args.num_trials ** 0.5),
         "run_duration" : run_duration,

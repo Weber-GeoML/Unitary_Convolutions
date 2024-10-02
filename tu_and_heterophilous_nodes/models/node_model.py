@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import copy
 from torch.nn import ModuleList, Dropout, ReLU
-from torch_geometric.nn import GCNConv, RGCNConv, SAGEConv, GINConv, FiLMConv, global_mean_pool
+from torch_geometric.nn import GCNConv, RGCNConv, GINConv, SAGEConv
 import torch.nn.functional as F
 
 from models.layers import TaylorGCNConv, ComplexGCNConv
@@ -57,14 +57,6 @@ class GCN(torch.nn.Module):
             return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features)))
         elif self.layer_type == "R-GIN":
             return RGINConv(in_features, out_features, self.num_relations)
-        elif self.layer_type == "SAGE":
-            return SAGEConv(in_features, out_features)
-        elif self.layer_type == "FiLM":
-            return FiLMConv(in_features, out_features)
-        elif self.layer_type == "Taylor":
-            return TaylorGCNConv(in_features, out_features)
-        elif self.layer_type == "Complex":
-            return ComplexGCNConv(in_features, out_features)
         
     def reset_parameters(self):
         for layer in self.layers:

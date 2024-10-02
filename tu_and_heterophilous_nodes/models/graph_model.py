@@ -78,16 +78,12 @@ class GNN(torch.nn.Module):
             return RGINConv(in_features, out_features, self.num_relations)
         elif self.layer_type == "GIN":
             return GINConv(nn.Sequential(nn.Linear(in_features, out_features),nn.BatchNorm1d(out_features), nn.ReLU(),nn.Linear(out_features, out_features)))
-        elif self.layer_type == "SAGE":
-            return SAGEConv(in_features, out_features)
-        elif self.layer_type == "FiLM":
-            return FiLMConv(in_features, out_features)
 
     def forward(self, graph, measure_dirichlet=False):
         x, edge_index, ptr, batch = graph.x, graph.edge_index, graph.ptr, graph.batch
         x = x.float()
         for i, layer in enumerate(self.layers):
-            if self.layer_type in ["R-GCN", "R-GAT", "R-GIN", "FiLM"]:
+            if self.layer_type in ["R-GCN", "R-GAT", "R-GIN"]:
                 x_new = layer(x, edge_index, edge_type=graph.edge_type)
             else:
                 x_new = layer(x, edge_index)
@@ -108,79 +104,7 @@ class GNN(torch.nn.Module):
         x = global_mean_pool(x, batch)
         return x
     
-
-"""
-class ComplexGCN(nn.Module):
-    def __init__(self, args):
-        super(ComplexGCN, self).__init__()
-        self.conv_layers = nn.ModuleList()
-        input_dim = args.input_dim
-        hidden_dim = 128
-        output_dim = args.output_dim
-        num_layers = 4
-        hidden_layer_dim = 128
-        self.T = 20
-        self.dropout = Dropout(p=args.dropout)
-        self.conv_layers = nn.ModuleList()
-        for _ in range(num_layers):
-            sample_layer = ComplexGCNConv(input_dim, hidden_dim)
-            taylor_layer = TaylorGCNConv(sample_layer, T=self.T)
-            self.conv_layers.append(taylor_layer)
-            input_dim = hidden_dim
-        self.hidden_layer = nn.Linear(hidden_dim, hidden_layer_dim)
-        self.output_layer = nn.Linear(hidden_layer_dim, output_dim)
-        self.reset_parameters()
-
-    def forward(self, data):
-        x, edge_index = data.x, data.edge_index
-        for conv in self.conv_layers:
-            x = conv(x, edge_index)
-            x_real = F.relu(x.real)
-            x_real = self.dropout(x_real) # added dropout
-            x_imag = F.relu(x.imag)
-            x_imag = self.dropout(x_imag) # added dropout
-            x = torch.complex(x_real, x_imag)
-        x = global_mean_pool(x.real, data.batch)  # Global pooling over nodes
-        x = F.relu(self.hidden_layer(x))  # Hidden layer with ReLU activation
-        x = self.output_layer(x)  # Output layer
-        return x.squeeze()
     
-    def reset_parameters(self):
-        pass
-
-
-class ComplexGCN(nn.Module):
-    def __init__(self, args):
-        super(ComplexGCN, self).__init__()
-        self.conv_layers = nn.ModuleList()
-        input_dim = args.input_dim
-        hidden_dim = 256
-        output_dim = args.output_dim
-        num_layers = 6
-        hidden_layer_dim = 256
-        self.T = 20
-        self.dropout = Dropout(p=args.dropout)
-        self.conv_layers = nn.ModuleList()
-        self.conv_layers.append(UnitaryGCNConvLayer(input_dim, hidden_dim))
-        for _ in range(num_layers):
-            self.conv_layers.append(UnitaryGCNConvLayer(hidden_dim, hidden_dim, use_hermitian=True))
-        self.hidden_layer = nn.Linear(hidden_dim, hidden_layer_dim)
-        self.output_layer = nn.Linear(hidden_layer_dim, output_dim)
-        self.reset_parameters()
-
-    def forward(self, data):
-        for conv in self.conv_layers:
-            data = conv(data)
-        x = global_mean_pool(data.x.real, data.batch)  # Global pooling over nodes
-        x = F.relu(self.hidden_layer(x))  # Hidden layer with ReLU activation
-        x = self.output_layer(x)  # Output layer
-        return x.squeeze()
-    
-    def reset_parameters(self):
-        pass
-"""
-
-
 class UnitaryGCN(nn.Module):
     def __init__(self, args):
         super(UnitaryGCN, self).__init__()

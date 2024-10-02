@@ -29,19 +29,10 @@ imdb = list(TUDataset(root="data", name="IMDB-BINARY"))
 datasets = {"mutag": mutag, "enzymes": enzymes, "proteins": proteins, "imdb": imdb}
 
 for key in datasets:
-    if key in ["reddit", "imdb", "collab"]:
+    if key == "imdb":
         for graph in datasets[key]:
             n = graph.num_nodes
             graph.x = torch.ones((n,1))
-
-def average_spectral_gap(dataset):
-    # computes the average spectral gap out of all graphs in a dataset
-    spectral_gaps = []
-    for graph in dataset:
-        G = to_networkx(graph, to_undirected=True)
-        spectral_gap = rewiring.spectral_gap(G)
-        spectral_gaps.append(spectral_gap)
-    return sum(spectral_gaps) / len(spectral_gaps)
 
 def log_to_file(message, filename="results/graph_classification.txt"):
     print(message)
@@ -58,17 +49,12 @@ default_args = AttrDict({
     "display": True,
     "num_trials": 50,
     "eval_every": 1,
-    "rewiring": None,
-    "num_iterations": 3,
     "patience": 50,
     "output_dim": 2,
     "alpha": 0.1,
     "eps": 0.001,
     "dataset": None,
     "last_layer_fa": False,
-    "borf_batch_add" : 4,
-    "borf_batch_remove" : 2,
-    "sdrf_remove_edges" : False,
     "encoding" : None
 })
 
@@ -76,9 +62,7 @@ hyperparams = {
     "mutag": AttrDict({"output_dim": 2}),
     "enzymes": AttrDict({"output_dim": 6}),
     "proteins": AttrDict({"output_dim": 2}),
-    "collab": AttrDict({"output_dim": 3}),
     "imdb": AttrDict({"output_dim": 2}),
-    "reddit": AttrDict({"output_dim": 2}),
 }
 
 results = []
@@ -95,10 +79,9 @@ for key in datasets:
     validation_accuracies = []
     test_accuracies = []
     energies = []
-    print(f"TESTING: {key} ({args.rewiring} - layer {args.layer_type})")
+    print(f"TESTING: {args.layer_type} on {key} dataset")
 
-    else:
-        dataset = datasets[key]
+    dataset = datasets[key]
     
     
     print('TRAINING STARTED...')
@@ -120,7 +103,7 @@ for key in datasets:
     val_ci = 2 * np.std(validation_accuracies)/(args.num_trials ** 0.5)
     test_ci = 2 * np.std(test_accuracies)/(args.num_trials ** 0.5)
     energy_ci = 200 * np.std(energies)/(args.num_trials ** 0.5)
-    log_to_file(f"RESULTS FOR {key} ({args.rewiring}), {args.num_iterations} ITERATIONS:\n")
+    log_to_file(f"RESULTS FOR {key}, {args.num_iterations} ITERATIONS:\n")
     log_to_file(f"average acc: {test_mean}\n")
     log_to_file(f"plus/minus:  {test_ci}\n\n")
     results.append({
@@ -141,5 +124,5 @@ for key in datasets:
 
     # Log every time a dataset is completed
     df = pd.DataFrame(results)
-    with open(f'results/graph_classification_{args.layer_type}_{args.rewiring}.csv', 'a') as f:
+    with open(f'results/graph_classification_{args.layer_type}.csv', 'a') as f:
         df.to_csv(f, mode='a', header=f.tell()==0)

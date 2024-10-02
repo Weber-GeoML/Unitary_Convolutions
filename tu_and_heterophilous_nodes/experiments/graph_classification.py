@@ -15,8 +15,8 @@ default_args = AttrDict(
     "device": None,
     "eval_every": 1,
     "stopping_criterion": "validation",
-    "stopping_threshold": 1.01,
-    "patience": 20,
+    "stopping_threshold": 1,
+    "patience": 100,
     "train_fraction": 0.5,
     "validation_fraction": 0.25,
     "test_fraction": 0.25,
@@ -59,8 +59,6 @@ class Experiment:
             else:
                 self.args.num_relations = 2
 
-        # if self.args.layer_type == "Complex":
-            # self.model = ComplexGCN(self.args).to(self.args.device)
         if self.args.layer_type == "Orthogonal":
             self.model = OrthogonalGCN(self.args).to(self.args.device)
         if self.args.layer_type == "Unitary":
