@@ -6,7 +6,7 @@
 
 The code here implements unitary/orthogonal graph message passing layers. Within the `layers` folder, `complex_valued_layers.py` implements complex valued layers and `real_valued_layers.py` implements layers only using real numbers (i.e. orthogonal). Both have virtually the same arguments, and we detail all of this below.
 
-  
+The paper accompanying this code is available at [https://arxiv.org/abs/2410.05499](https://arxiv.org/abs/2410.05499).
 
 ### Real valued layers (orthogonal)
 
